@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GymQuest.Api/GymQuest.Api.csproj" />
+    <Project Path="src/GymQuest.Application/GymQuest.Application.csproj" />
+    <Project Path="src/GymQuest.Domain/GymQuest.Domain.csproj" />
+    <Project Path="src/GymQuest.Infrastructure/GymQuest.Infrastructure.csproj" />
+  </Folder>
+</Solution>
