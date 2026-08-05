@@ -6,6 +6,7 @@
     <Project Path="src/GymQuest.Infrastructure/GymQuest.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/GymQuest.Application.Tests/GymQuest.Application.Tests.csproj" />
     <Project Path="tests/GymQuest.Domain.Tests/GymQuest.Domain.Tests.csproj" />
   </Folder>
 </Solution>
