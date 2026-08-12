@@ -1,4 +1,5 @@
 using GymQuest.Domain.Entities;
+namespace GymQuest.Domain.Interfaces;
 public interface ILogroRepository
 {
     Task<Logro?> ObtenerPorIdAsync(Guid id);
