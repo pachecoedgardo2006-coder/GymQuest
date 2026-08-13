@@ -4,6 +4,6 @@ namespace GymQuest.Application.Interfaces;
 
 public interface IUsuarioService
 {
-    Task<UsuarioDto> RegistrarUsuarioAsync(CrearUsuarioDto dto);
-    Task<UsuarioDto> IniciarSesionAsync(LoginDto dto);
+    Task<AuthResponseDto> RegistrarUsuarioAsync(CrearUsuarioDto dto);
+    Task<AuthResponseDto> IniciarSesionAsync(LoginDto dto);
 }

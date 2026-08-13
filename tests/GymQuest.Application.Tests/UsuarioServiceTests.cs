@@ -1,5 +1,6 @@
 using FluentAssertions;
 using GymQuest.Application.DTOs;
+using GymQuest.Application.Interfaces;
 using GymQuest.Application.Services;
 using GymQuest.Domain.Entities;
 using GymQuest.Domain.Interfaces;
@@ -12,12 +13,22 @@ namespace GymQuest.Application.Tests;
 public class UsuarioServiceTests
 {
     private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock = new();
+    private readonly Mock<IHeroeRepository> _heroeRepositoryMock = new();
     private readonly Mock<IPasswordHasher<Usuario>> _passwordHasherMock = new();
+    private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock = new();
     private readonly UsuarioService _sut;
 
     public UsuarioServiceTests()
     {
-        _sut = new UsuarioService(_usuarioRepositoryMock.Object, _passwordHasherMock.Object);
+        _jwtTokenGeneratorMock
+            .Setup(j => j.GenerarToken(It.IsAny<Usuario>()))
+            .Returns("token-simulado");
+
+        _sut = new UsuarioService(
+            _usuarioRepositoryMock.Object,
+            _heroeRepositoryMock.Object,
+            _passwordHasherMock.Object,
+            _jwtTokenGeneratorMock.Object);
     }
 
     [Fact]
@@ -38,9 +49,11 @@ public class UsuarioServiceTests
         var resultado = await _sut.RegistrarUsuarioAsync(dto);
 
         // Assert
-        resultado.NombreUsuario.Should().Be("Carlos");
-        resultado.Email.Should().Be("carlos@test.com");
+        resultado.Usuario.NombreUsuario.Should().Be("Carlos");
+        resultado.Usuario.Email.Should().Be("carlos@test.com");
+        resultado.Token.Should().Be("token-simulado");
         _usuarioRepositoryMock.Verify(r => r.AgregarAsync(It.IsAny<Usuario>()), Times.Once);
+        _heroeRepositoryMock.Verify(r => r.AgregarAsync(It.IsAny<Heroe>()), Times.Once);
     }
 
     [Fact]
@@ -60,10 +73,11 @@ public class UsuarioServiceTests
         // Assert
         await accion.Should().ThrowAsync<InvalidOperationException>();
         _usuarioRepositoryMock.Verify(r => r.AgregarAsync(It.IsAny<Usuario>()), Times.Never);
+        _heroeRepositoryMock.Verify(r => r.AgregarAsync(It.IsAny<Heroe>()), Times.Never);
     }
 
     [Fact]
-    public async Task IniciarSesionAsync_CredencialesCorrectas_DevuelveUsuarioDto()
+    public async Task IniciarSesionAsync_CredencialesCorrectas_DevuelveAuthResponseDto()
     {
         // Arrange
         var usuario = new Usuario("Carlos", "carlos@test.com", "hash-real");
@@ -81,7 +95,8 @@ public class UsuarioServiceTests
         var resultado = await _sut.IniciarSesionAsync(dto);
 
         // Assert
-        resultado.Email.Should().Be("carlos@test.com");
+        resultado.Usuario.Email.Should().Be("carlos@test.com");
+        resultado.Token.Should().Be("token-simulado");
     }
 
     [Fact]

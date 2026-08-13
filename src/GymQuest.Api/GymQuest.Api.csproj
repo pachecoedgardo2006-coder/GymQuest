@@ -14,11 +14,26 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.14.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GymQuest.Application\GymQuest.Application.csproj" />
     <ProjectReference Include="..\GymQuest.Infrastructure\GymQuest.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <!--
+    Supresión quirúrgica de NU1903: Microsoft.AspNetCore.OpenApi 10.x todavía
+    trae por transitividad Microsoft.OpenApi 2.0.0, que tiene una vulnerabilidad
+    conocida (GHSA-v5pm-xwqc-g5wc). El fix real es Microsoft.OpenApi 3.x, pero
+    Microsoft.AspNetCore.OpenApi 10.x aún no es compatible con esa versión mayor.
+    Suprimimos SOLO este advisory puntual (no toda la auditoría), así seguimos
+    protegidos ante cualquier otra vulnerabilidad futura.
+    Revisar periódicamente si ya se puede quitar esta supresión.
+  -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v5pm-xwqc-g5wc" />
   </ItemGroup>
 
 </Project>

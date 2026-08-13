@@ -9,17 +9,23 @@ namespace GymQuest.Application.Services;
 public class UsuarioService : IUsuarioService
 {
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IHeroeRepository _heroeRepository;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public UsuarioService(
         IUsuarioRepository usuarioRepository,
-        IPasswordHasher<Usuario> passwordHasher)
+        IHeroeRepository heroeRepository,
+        IPasswordHasher<Usuario> passwordHasher,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
         _usuarioRepository = usuarioRepository;
+        _heroeRepository = heroeRepository;
         _passwordHasher = passwordHasher;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public async Task<UsuarioDto> RegistrarUsuarioAsync(CrearUsuarioDto dto)
+    public async Task<AuthResponseDto> RegistrarUsuarioAsync(CrearUsuarioDto dto)
     {
         var existente = await _usuarioRepository.ObtenerPorEmailAsync(dto.Email);
         if (existente is not null)
@@ -31,13 +37,19 @@ public class UsuarioService : IUsuarioService
         var hash = _passwordHasher.HashPassword(usuarioParaHash, dto.Password);
 
         var usuario = new Usuario(dto.NombreUsuario, dto.Email, hash);
-
         await _usuarioRepository.AgregarAsync(usuario);
 
-        return new UsuarioDto(usuario.Id, usuario.NombreUsuario, usuario.Email, usuario.FechaRegistro);
+        // Cada Usuario tiene exactamente un Heroe (su avatar), y nace junto
+        // con él: nivel 1, XP 0, título "Novato de Hierro" (valores por
+        // defecto de la entidad Heroe). Así el usuario nunca ve un estado
+        // "sin héroe" tras registrarse.
+        var heroe = new Heroe(usuario.Id);
+        await _heroeRepository.AgregarAsync(heroe);
+
+        return ConstruirRespuestaAuth(usuario);
     }
 
-    public async Task<UsuarioDto> IniciarSesionAsync(LoginDto dto)
+    public async Task<AuthResponseDto> IniciarSesionAsync(LoginDto dto)
     {
         var usuario = await _usuarioRepository.ObtenerPorEmailAsync(dto.Email);
         if (usuario is null)
@@ -51,6 +63,14 @@ public class UsuarioService : IUsuarioService
             throw new InvalidOperationException("Email o contraseña incorrectos.");
         }
 
-        return new UsuarioDto(usuario.Id, usuario.NombreUsuario, usuario.Email, usuario.FechaRegistro);
+        return ConstruirRespuestaAuth(usuario);
+    }
+
+    private AuthResponseDto ConstruirRespuestaAuth(Usuario usuario)
+    {
+        var token = _jwtTokenGenerator.GenerarToken(usuario);
+        var usuarioDto = new UsuarioDto(usuario.Id, usuario.NombreUsuario, usuario.Email, usuario.FechaRegistro);
+
+        return new AuthResponseDto(usuarioDto, token);
     }
 }
