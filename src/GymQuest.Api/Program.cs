@@ -17,6 +17,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
+// Carga el archivo .env (si existe) e inyecta sus pares clave=valor como
+// variables de entorno del proceso ANTES de que CreateBuilder lea la config.
+// En producción normalmente no habrá .env y esta línea simplemente no hace nada.
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ===================== Controllers + filtros =====================
